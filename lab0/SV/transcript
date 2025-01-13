@@ -1,0 +1,30 @@
+# do fsm.do
+# Error 133: Unable to remove directory "C:/Users/creep/OneDrive/Documents/GitHub/ecen4243S25/lab0/SV/work/@_opt/_data".
+# Error 133: Unable to remove directory "C:/Users/creep/OneDrive/Documents/GitHub/ecen4243S25/lab0/SV/work/@_opt".
+# Error 133: Unable to remove directory "C:/Users/creep/OneDrive/Documents/GitHub/ecen4243S25/lab0/SV/work/_temp".
+# Error 133: Unable to remove directory "C:/Users/creep/OneDrive/Documents/GitHub/ecen4243S25/lab0/SV/work/_tempmsg".
+# Error 133: Unable to remove directory "C:/Users/creep/OneDrive/Documents/GitHub/ecen4243S25/lab0/SV/work".
+# Model Technology ModelSim SE-64 vlog 2021.3 Compiler 2021.07 Jul 13 2021
+# Start time: 15:30:30 on Jan 13,2025
+# vlog fsm.sv tb_fsm.sv 
+# -- Compiling module fsm
+# -- Compiling module stimulus
+# 
+# Top level modules:
+# 	stimulus
+# End time: 15:30:30 on Jan 13,2025, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vsim -voptargs="+acc" work.stimulus 
+# Start time: 15:30:30 on Jan 13,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# ** Error: (vopt-7) Failed to open  file "C:/Users/creep/OneDrive/Documents/GitHub/ecen4243S25/lab0/SV/work/@_opt/_deps" in read mode.
+# File exists. (errno = EEXIST)
+# ** Warning: (vopt-56) Problem with optimized design dependency file "C:/Users/creep/OneDrive/Documents/GitHub/ecen4243S25/lab0/SV/work/@_opt/_deps" - file open failed.
+# No such file or directory. (errno = ENOENT)
+# ** Fatal: (vopt-8) Problem while reading dependency file "_deps".
+# No such file or directory. (errno = ENOENT)
+# Vopt Compiler exiting
+# ** Note: (vsim-12126) Error and warning message counts have been restored: Errors=2, Warnings=1.
+# Error loading design
+# End time: 15:30:31 on Jan 13,2025, Elapsed time: 0:00:01
+# Errors: 2, Warnings: 1
