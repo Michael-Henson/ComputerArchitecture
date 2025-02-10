@@ -1,7 +1,7 @@
 TARGET = fir1
 
 $(TARGET).objdump: $(TARGET)
-	riscv64-unknown-elf-objdump -S -D $(TARGET) > $(TARGET).objdump
+	riscv64-unknown-elf-objdump -S -O -D $(TARGET) > $(TARGET).objdump
 	spike $(TARGET)
     
 $(TARGET): $(TARGET).c Makefile

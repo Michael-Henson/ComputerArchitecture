@@ -1,0 +1,73 @@
+BEGIN 1:ram1p1rwe:fast__2:wkdir/rv64gc_None
+    ram.RAM :  1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+    ram.RAM :  1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+    ram.RAM :  1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+    ram.RAM :  1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+END 
+BEGIN 1:wallypipelinedcore:fast:wkdir/rv64gc_None
+    InstrValidM :  1:testbench:fast:wkdir/rv64gc_None
+END 
+BEGIN 1:lsu:fast:wkdir/rv64gc_None
+    LSULoadAccessFaultM :  1:testbench:fast:wkdir/rv64gc_None
+    MemRWM :  1:testbench:fast:wkdir/rv64gc_None
+    ReadDataM :  1:testbench:fast:wkdir/rv64gc_None
+    IEUAdrM :  1:testbench:fast:wkdir/rv64gc_None
+END 
+BEGIN 1:datapath:fast:wkdir/rv64gc_None
+    StallW :  1:testbench:fast:wkdir/rv64gc_None 1:watchdog:fast:wkdir/rv64gc_None
+    FlushE :  1:testbench:fast:wkdir/rv64gc_None
+END 
+BEGIN 1:uartPC16550D:fast:wkdir/rv64gc_None
+    Din :  1:testbench:fast:wkdir/rv64gc_None
+    DLAB :  1:testbench:fast:wkdir/rv64gc_None
+    A :  1:testbench:fast:wkdir/rv64gc_None
+END 
+BEGIN 1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+    ShadowRAM :  1:testbench:fast:wkdir/rv64gc_None
+END 
+BEGIN 1:ram1p1rwbe:fast__1:wkdir/rv64gc_None
+    ram.RAM :  1:testbench:fast:wkdir/rv64gc_None
+END 
+BEGIN 1:rom1p1r:fast:wkdir/rv64gc_None
+    ROM :  1:testbench:fast:wkdir/rv64gc_None
+END 
+BEGIN 1:uart_apb:fast:wkdir/rv64gc_None
+    MEMWb :  1:testbench:fast:wkdir/rv64gc_None
+END 
+BEGIN 1:ram1p1rwbe:fast:wkdir/rv64gc_None
+    ram.RAM :  1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+    ram.RAM :  1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+    ram.RAM :  1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+    ram.RAM :  1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+    ram.RAM :  1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+    ram.RAM :  1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+    ram.RAM :  1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+    ram.RAM :  1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+    ram.RAM :  1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+    ram.RAM :  1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+    ram.RAM :  1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+    ram.RAM :  1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+    ram.RAM :  1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+    ram.RAM :  1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+    ram.RAM :  1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+    ram.RAM :  1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+END 
+BEGIN 1:privileged:fast:wkdir/rv64gc_None
+    EcallFaultM :  1:testbench:fast:wkdir/rv64gc_None
+END 
+BEGIN 1:csrc:fast:wkdir/rv64gc_None
+    HPMCOUNTER_REGW :  1:testbench:fast:wkdir/rv64gc_None
+END 
+BEGIN 1:ifu:fast:wkdir/rv64gc_None
+    FlushM :  1:testbench:fast:wkdir/rv64gc_None
+    PCM :  1:testbench:fast:wkdir/rv64gc_None
+    InstrRawF :  1:testbench:fast:wkdir/rv64gc_None
+    PCE :  1:watchdog:fast:wkdir/rv64gc_None
+    InstrE :  1:testbench:fast:wkdir/rv64gc_None
+    StallM :  1:testbench:fast:wkdir/rv64gc_None 1:watchdog:fast:wkdir/rv64gc_None
+    InstrD :  1:testbench:fast:wkdir/rv64gc_None
+END 
+BEGIN 1:cacheway:fast__1:wkdir/rv64gc_None
+    ValidBits :  1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+    DirtyBits :  1:DCacheFlushFSM:fast:wkdir/rv64gc_None
+END 

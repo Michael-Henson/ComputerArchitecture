@@ -1,0 +1,4 @@
+RV64ZBKB,"K Cryptography Extensions, bitmanip instructions for Cryptography",1.0
+xlen,64
+""
+Extension,Subset,Instruction,Description,Covergroup,Coverpoint,Coverpoint Description,Coverage Level,Pass/Fail Criteria,Test Type,Coverage Method

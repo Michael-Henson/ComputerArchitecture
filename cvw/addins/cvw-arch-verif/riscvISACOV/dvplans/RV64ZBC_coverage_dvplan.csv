@@ -1,0 +1,4 @@
+RV64ZBC,"B Standard Extension for Bit-Manipulation, carry-less multiplication",1.0
+xlen,64
+""
+Extension,Subset,Instruction,Description,Covergroup,Coverpoint,Coverpoint Description,Coverage Level,Pass/Fail Criteria,Test Type,Coverage Method

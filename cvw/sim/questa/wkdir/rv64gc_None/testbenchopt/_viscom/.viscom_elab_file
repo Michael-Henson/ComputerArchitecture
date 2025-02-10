@@ -1,0 +1,1 @@
+/opt/ModelSim/questasim/linux_x86_64/VisualizerRls/bin/viscom -nolock -quiet -jmem_size 3436568 wkdir/rv64gc_None.testbench -work wkdir/rv64gc_None -o testbenchopt
