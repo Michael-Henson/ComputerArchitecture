@@ -9,21 +9,47 @@
 // run 210
 // Expect simulator to print "Simulation succeeded"
 // when the value 25 (0x19) is written to address 100 (0x64)
+//-----------Provided------------------
+//  Instruction   opcode    funct3    funct7
+//  add           0110011   000       0000000
+//  sub           0110011   000       0100000
+//  and           0110011   111       0000000
+//  or            0110011   110       0000000
+//  slt           0110011   010       0000000
+//  addi          0010011   000       immediate
+//  andi          0010011   111       immediate
+//  ori           0010011   110       immediate
+//  slti          0010011   010       immediate
+//  beq           1100011   000       immediate
+//  lw	          0000011   010       immediate
+//  sw            0100011   010       immediate
+//  jal           1101111   immediate immediate
+//-------------added-------------------
+//  bge           1100011   101       immediate
+//  bgeu          1100011   111       immediate
+//  blt           1100011   100       immediate
+//  bltu          1100011   110       immediate
+//  bne           1100011   001       immediate
+//  jalr          1100111   000       immediate
+//  lb            0000011   000       immediate
+//  lbu           0000011   100       immediate
+//  lh            0000011   001       immediate
+//  lhu           0000011   101       immediate
+//  lui           0110111   immediate immediate
+//  sb            0100011   000       immediate
+//  sh            0100011   001       immediate
+//  sll           0110011   001       0000000
+//  slli          0010011   001       000000*
+//  sltiu         0010011   011       immediate
+//  sltu          0110011   011       0000000
+//  sra           0110011   101       0100000
+//  srai          0010011   101       010000*
+//  srl           0110011   101       0000000
+//  srli          0010011   101       000000*
+//  xor           0110011   100       0000000
+//  xori          0010011   100       immediate
 
-//   Instruction  opcode    funct3    funct7
-//   add          0110011   000       0000000
-//   sub          0110011   000       0100000
-//   and          0110011   111       0000000
-//   or           0110011   110       0000000
-//   slt          0110011   010       0000000
-//   addi         0010011   000       immediate
-//   andi         0010011   111       immediate
-//   ori          0010011   110       immediate
-//   slti         0010011   010       immediate
-//   beq          1100011   000       immediate
-//   lw	          0000011   010       immediate
-//   sw           0100011   010       immediate
-//   jal          1101111   immediate immediate
+
 
 module testbench();
 
@@ -40,7 +66,7 @@ module testbench();
    initial
      begin
 	string memfilename;
-        memfilename = {"../riscvtest/riscvtest.memfile"};
+        memfilename = {"../testing/lui.memfile"};
         $readmemh(memfilename, dut.imem.RAM);
      end
 
@@ -80,7 +106,8 @@ module riscvsingle (input  logic        clk, reset,
 		    input  logic [31:0] ReadData);
    
    logic 				ALUSrc, RegWrite, Jump, Zero;
-   logic [1:0] 				ResultSrc, ImmSrc;
+   logic [1:0] 				ResultSrc;
+   logic [2:0]        ImmSrc;
    logic [2:0] 				ALUControl;
    
    controller c (Instr[6:0], Instr[14:12], Instr[30], Zero,
@@ -103,7 +130,7 @@ module controller (input  logic [6:0] op,
 		   output logic       MemWrite,
 		   output logic       PCSrc, ALUSrc,
 		   output logic       RegWrite, Jump,
-		   output logic [1:0] ImmSrc,
+		   output logic [2:0] ImmSrc,
 		   output logic [2:0] ALUControl);
    
    logic [1:0] 			      ALUOp;
@@ -121,10 +148,10 @@ module maindec (input  logic [6:0] op,
 		output logic 	   MemWrite,
 		output logic 	   Branch, ALUSrc,
 		output logic 	   RegWrite, Jump,
-		output logic [1:0] ImmSrc,
+		output logic [2:0] ImmSrc,
 		output logic [1:0] ALUOp);
    
-   logic [10:0] 		   controls;
+   logic [11:0] 		   controls;
    
    assign {RegWrite, ImmSrc, ALUSrc, MemWrite,
 	   ResultSrc, Branch, ALUOp, Jump} = controls;
@@ -132,13 +159,15 @@ module maindec (input  logic [6:0] op,
    always_comb
      case(op)
        // RegWrite_ImmSrc_ALUSrc_MemWrite_ResultSrc_Branch_ALUOp_Jump
-       7'b0000011: controls = 11'b1_00_1_0_01_0_00_0; // lw
-       7'b0100011: controls = 11'b0_01_1_1_00_0_00_0; // sw
-       7'b0110011: controls = 11'b1_xx_0_0_00_0_10_0; // R–type
-       7'b1100011: controls = 11'b0_10_0_0_00_1_01_0; // beq
-       7'b0010011: controls = 11'b1_00_1_0_00_0_10_0; // I–type ALU
-       7'b1101111: controls = 11'b1_11_0_0_10_0_00_1; // jal
-       default: controls = 11'bx_xx_x_x_xx_x_xx_x; // ???
+       7'b0000011: controls = 12'b1_000_1_0_01_0_00_0; // lw //lb, lbu, lh, lhu
+       7'b0100011: controls = 12'b0_001_1_1_00_0_00_0; // sw //sb, sh
+       7'b0110011: controls = 12'b1_101_0_0_00_0_10_0; // R–type //sll, sltu, sra, srl, xor
+       7'b1100011: controls = 12'b0_010_0_0_00_1_01_0; // beq //bge, bgeu, blt, bltu, bne
+       7'b0010011: controls = 12'b1_000_1_0_00_0_10_0; // I–type ALU addi //slli, sltiu, srai, srli, xori
+       7'b1101111: controls = 12'b1_011_0_0_10_0_00_1; // jal 
+       7'b1100111: controls = 12'b0_000_x_0_10_0_xx_1; //jalr
+       7'b0110111: controls = 12'b1_100_1_0_01_0_11_0; //lui
+       default: controls = 12'bx_xxx_x_x_xx_x_xx_x; // ???
      endcase // case (op)
    
 endmodule // maindec
@@ -156,16 +185,23 @@ module aludec (input  logic       opb5,
      case(ALUOp)
        2'b00: ALUControl = 3'b000; // addition
        2'b01: ALUControl = 3'b001; // subtraction
+       2'b11: ALUControl = 3'b110; // lui (and)
        default: case(funct3) // R–type or I–type ALU
-		  3'b000: if (RtypeSub)
-		    ALUControl = 3'b001; // sub
-		  else
-		    ALUControl = 3'b000; // add, addi
-		  3'b010: ALUControl = 3'b101; // slt, slti
-		  3'b110: ALUControl = 3'b011; // or, ori
-		  3'b111: ALUControl = 3'b010; // and, andi
-		  default: ALUControl = 3'bxxx; // ???
-		endcase // case (funct3)       
+          3'b000: if (RtypeSub)
+            ALUControl = 3'b001; // sub
+          else
+            ALUControl = 3'b000; // add, addi
+          3'b010: ALUControl = 3'b101; // slt, slti
+          3'b110: ALUControl = 3'b011; // or, ori //bltu
+          3'b111: ALUControl = 3'b010; // and, andi // bgeu
+          //3'b101: ALUControl = 3'b //bge, lhu, sra, srai, srl, srli
+          //3'b100: ALUControl = 3'b //lt, lbu, xor, xori
+          //3'b001: ALUControl = 3'b //bne, lh, sh, sll, slli
+          //3'b000: ALUControl = 3'b //jalr, lb, sb
+          //3'b011 sltiu, sltu
+          //imm lui
+          default: ALUControl = 3'bxxx; // ???
+        endcase // case (funct3)       
      endcase // case (ALUOp)
    
 endmodule // aludec
@@ -174,7 +210,7 @@ module datapath (input  logic        clk, reset,
 		 input  logic [1:0]  ResultSrc,
 		 input  logic 	     PCSrc, ALUSrc,
 		 input  logic 	     RegWrite,
-		 input  logic [1:0]  ImmSrc,
+		 input  logic [2:0] ImmSrc,
 		 input  logic [2:0]  ALUControl,
 		 output logic 	     Zero,
 		 output logic [31:0] PC,
@@ -211,19 +247,23 @@ module adder (input  logic [31:0] a, b,
 endmodule
 
 module extend (input  logic [31:7] instr,
-	       input  logic [1:0]  immsrc,
+	       input  logic [2:0] immsrc,
 	       output logic [31:0] immext);
    
    always_comb
      case(immsrc)
        // I−type
-       2'b00:  immext = {{20{instr[31]}}, instr[31:20]};
+       3'b000:  immext = {{20{instr[31]}}, instr[31:20]};
        // S−type (stores)
-       2'b01:  immext = {{20{instr[31]}}, instr[31:25], instr[11:7]};
+       3'b001:  immext = {{20{instr[31]}}, instr[31:25], instr[11:7]};
        // B−type (branches)
-       2'b10:  immext = {{20{instr[31]}}, instr[7], instr[30:25], instr[11:8], 1'b0};       
+       3'b010:  immext = {{20{instr[31]}}, instr[7], instr[30:25], instr[11:8], 1'b0};       
        // J−type (jal)
-       2'b11:  immext = {{12{instr[31]}}, instr[19:12], instr[20], instr[30:21], 1'b0};
+       3'b011:  immext = {{12{instr[31]}}, instr[19:12], instr[20], instr[30:21], 1'b0};
+       // U-Type ()
+       3'b100:  immext = {{12{instr[31]}}, instr[31:12], 12'b0};
+       // R-Type ()
+       //3'b101:  immext = {}
        default: immext = 32'bx; // undefined
      endcase // case (immsrc)
    
@@ -286,7 +326,7 @@ endmodule // top
 module imem (input  logic [31:0] a,
 	     output logic [31:0] rd);
    
-   logic [31:0] 		 RAM[63:0];
+   logic [31:0] 		 RAM[1023:0];
    
    assign rd = RAM[a[31:2]]; // word aligned
    
@@ -317,14 +357,16 @@ module alu (input  logic [31:0] a, b,
    assign sum = a + condinvb + alucontrol[0];
    assign isAddSub = ~alucontrol[2] & ~alucontrol[1] |
                      ~alucontrol[1] & alucontrol[0];   
-
+  assign b = 32'b1;
    always_comb
      case (alucontrol)
        3'b000:  result = sum;         // add
        3'b001:  result = sum;         // subtract
        3'b010:  result = a & b;       // and
        3'b011:  result = a | b;       // or
-       3'b101:  result = sum[31] ^ v; // slt       
+       3'b101:  result = sum[31] ^ v; // slt     
+       ///////////////////////////////////////////////////////////////////////////////3'b110: result = 32'b0;
+
        default: result = 32'bx;
      endcase
 
