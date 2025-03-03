@@ -25,27 +25,27 @@
 //  sw            0100011   010       immediate
 //  jal           1101111   immediate immediate
 //-------------added-------------------
-//  bge           1100011   101       immediate
+//  bge           1100011   101       immediate   Next
 //  bgeu          1100011   111       immediate
 //  blt           1100011   100       immediate
 //  bltu          1100011   110       immediate
-//  bne           1100011   001       immediate   Done?
-//  jalr          1100111   000       immediate
+//  bne           1100011   001       immediate   Done!
+//  jalr          1100111   000       immediate   Next
 //  lb            0000011   000       immediate
 //  lbu           0000011   100       immediate
 //  lh            0000011   001       immediate
 //  lhu           0000011   101       immediate
-//  lui           0110111   immediate immediate   Done?
+//  lui           0110111   immediate immediate   Done!
 //  sb            0100011   000       immediate
 //  sh            0100011   001       immediate
 //  sll           0110011   001       0000000
 //  slli          0010011   001       000000*
 //  sltiu         0010011   011       immediate
 //  sltu          0110011   011       0000000
-//  sra           0110011   101       0100000
-//  srai          0010011   101       010000*     Done?
-//  srl           0110011   101       0000000
-//  srli          0010011   101       000000*
+//  sra           0110011   101       0100000     Done!
+//  srai          0010011   101       010000*     Done!
+//  srl           0110011   101       0000000     Done!
+//  srli          0010011   101       000000*     Done!
 //  xor           0110011   100       0000000
 //  xori          0010011   100       immediate
 
@@ -66,7 +66,7 @@ module testbench();
    initial
      begin
 	string memfilename;
-        memfilename = {"../testing/srai.memfile"};
+        memfilename = {"../testing/slt.memfile"};
         $readmemh(memfilename, dut.imem.RAM);
      end
 
@@ -139,7 +139,7 @@ module controller (input  logic [6:0] op,
    maindec md (op, ResultSrc, MemWrite, Branch,
 	       ALUSrc, RegWrite, Jump, ImmSrc, ALUOp);
    aludec ad (op[5], funct3, funct7b5, ALUOp, ALUControl);
-   assign PCSrc = Branch & (Zero ^ funct3[0]) | Jump;
+   assign PCSrc = Branch & (Zero ^ funct3[0]) | Jump | (Zero);
    
 endmodule // controller
 
@@ -164,9 +164,9 @@ module maindec (input  logic [6:0] op,
        7'b0110011: controls = 12'b1_101_0_0_00_0_10_0; // R–type //sll, sltu, sra, srl, xor
        7'b1100011: controls = 12'b0_010_0_0_00_1_01_0; // beq //bge, bgeu, blt, bltu, bne
        7'b0010011: controls = 12'b1_000_1_0_00_0_10_0; // I–type ALU addi //slli, sltiu, srai, srli, xori
-       7'b1101111: controls = 12'b1_011_0_0_10_0_00_1; // jal 
-       7'b1100111: controls = 12'b0_000_x_0_10_0_xx_1; //jalr
-       7'b0110111: controls = 12'b1_100_1_0_11_0_11_0; //lui
+       7'b1101111: controls = 12'b1_011_0_0_10_0_00_1; // jal //Done!
+       7'b1100111: controls = 12'b1_000_1_0_00_0_00_1; //jalr
+       7'b0110111: controls = 12'b1_100_1_0_11_0_11_0; //lui //Done!
        default: controls = 12'bx_xxx_x_x_xx_x_xx_x; // ???
      endcase // case (op)
    
@@ -176,7 +176,7 @@ endmodule // maindec
 //ImmSrc - Type to use in extend
 //ALUSrc - Switches Mux 2 between RD2(register file)(0) or Immext(extend)(1)
 //MemWrite - Sets WE(Data Memory)
-//ResultSrc - Switches Mux3 between ALUResult(00) or ReadData(01) or ImmExt(10)
+//ResultSrc - Switches Mux3 between ALUResult(00) or ReadData(01) or PCplus4(10) or ImmExt(11)
 //Branch - Same as jump
 //ALUOp - Code used in aludec
 //Jump - Determines wether to PC+4 or jump elsewhere
@@ -197,16 +197,20 @@ module aludec (input  logic       opb5,
      case(ALUOp)
        2'b00: ALUControl = 3'b000; // addition
        2'b01: ALUControl = 3'b001; // subtraction
+       //2'b10: ALUControl = 3'b
        2'b11: ALUControl = 3'b110; // lui (and)
        default: case(funct3) // R–type or I–type ALU
-          3'b000: if (RtypeSub)
-            ALUControl = 3'b001; // sub
-          else
-            ALUControl = 3'b000; // add, addi
-          3'b010: ALUControl = 3'b101; // slt, slti
-          3'b110: ALUControl = 3'b011; // or, ori //bltu
-          3'b111: ALUControl = 3'b010; // and, andi // bgeu
-          3'b101: ALUControl = 3'b100; //bge, lhu, sra, srai, srl, srli
+                  3'b000: if (RtypeSub)
+                          ALUControl = 3'b001; // sub
+                          else
+                          ALUControl = 3'b000; // add, addi
+                  3'b010: ALUControl = 3'b101; // slt, slti
+                  3'b110: ALUControl = 3'b011; // or, ori //bltu
+                  3'b111: ALUControl = 3'b010; // and, andi // bgeu
+                  3'b101: if(funct7b5)
+                          ALUControl = 3'b100; //srli
+                          else
+                          ALUControl = 3'b110; //bge, lhu, sra, srai, srl, srli
           //3'b100: ALUControl = 3'b //lt, lbu, xor, xori
           //3'b001: ALUControl = 3'b //bne, lh, sh, sll, slli
           //3'b000: ALUControl = 3'b //jalr, lb, sb
@@ -375,8 +379,9 @@ module alu (input  logic [31:0] a, b,
        3'b001:  result = sum;         // subtract
        3'b010:  result = a & b;       // and
        3'b011:  result = a | b;       // or
-       3'b100:  result = b >>> 6;     // srai
+       3'b100:  result = $signed(a) >>> b[4:0];     // srai
        3'b101:  result = sum[31] ^ v; // slt     
+       3'b110:  result = $unsigned(a) >> b[4:0]; //srli
 
        default: result = 32'bx;
      endcase
