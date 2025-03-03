@@ -1,15 +1,23 @@
+# //  ModelSim SE-64 2021.3 Jul 13 2021
+# //
+# //  Copyright 1991-2021 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  ModelSim SE-64 and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
 # do riscv_single.do
-# ** Warning: (vdel-134) Unable to remove locked optimized design "_opt".  Locker is jstine@sakuya.ecen.okstate.edu.
-# Error 133: Unable to remove directory "C:/Users/creep/OneDrive/Desktop/ComputerArchitecture/lab2/hdl/work/@_opt1/_data".
-# Error 133: Unable to remove directory "C:/Users/creep/OneDrive/Desktop/ComputerArchitecture/lab2/hdl/work/@_opt1/_viscom".
-# Error 133: Unable to remove directory "C:/Users/creep/OneDrive/Desktop/ComputerArchitecture/lab2/hdl/work/@_opt1".
-# Error 133: Unable to remove directory "C:/Users/creep/OneDrive/Desktop/ComputerArchitecture/lab2/hdl/work/_dbcontainer/#64_opt1".
+# Error 133: Unable to remove directory "C:/Users/creep/OneDrive/Desktop/ComputerArchitecture/lab2/hdl/work/_dbcontainer/#64_opt".
 # Error 133: Unable to remove directory "C:/Users/creep/OneDrive/Desktop/ComputerArchitecture/lab2/hdl/work/_dbcontainer".
-# ** Warning: (vlib-34) Library already exists at "work".
-# Errors: 0, Warnings: 1
+# Error 133: Unable to remove directory "C:/Users/creep/OneDrive/Desktop/ComputerArchitecture/lab2/hdl/work".
 # Model Technology ModelSim SE-64 vlog 2021.3 Compiler 2021.07 Jul 13 2021
-# Start time: 10:04:37 on Mar 03,2025
-# vlog riscv_single.sv 
+# Start time: 12:06:06 on Mar 03,2025
+# vlog -reportprogress 300 riscv_single.sv 
 # -- Compiling module testbench
 # -- Compiling module riscvsingle
 # -- Compiling module controller
@@ -31,20 +39,30 @@
 # Top level modules:
 # 	testbench
 # 	flopenr
-# End time: 10:04:37 on Mar 03,2025, Elapsed time: 0:00:00
+# End time: 12:06:06 on Mar 03,2025, Elapsed time: 0:00:00
 # Errors: 0, Warnings: 0
 # vsim -debugdb -voptargs="+acc" work.testbench 
-# Start time: 10:04:37 on Mar 03,2025
+# Start time: 12:06:06 on Mar 03,2025
 # ** Note: (vsim-3812) Design is being optimized...
 # ** Note: (vsim-8611) Generating debug db.
-# ** Error: (vopt-7) Failed to open  file "C:/Users/creep/OneDrive/Desktop/ComputerArchitecture/lab2/hdl/work/@_opt1/_deps" in read mode.
-# File exists. (errno = EEXIST)
-# ** Warning: (vopt-56) Problem with optimized design dependency file "C:/Users/creep/OneDrive/Desktop/ComputerArchitecture/lab2/hdl/work/@_opt1/_deps" - file open failed.
-# No such file or directory. (errno = ENOENT)
-# ** Fatal: (vopt-8) Problem while reading dependency file "_deps".
-# No such file or directory. (errno = ENOENT)
-# Vopt Compiler exiting
-# ** Note: (vsim-12126) Error and warning message counts have been restored: Errors=2, Warnings=1.
-# Error loading design
-# End time: 10:04:37 on Mar 03,2025, Elapsed time: 0:00:00
-# Errors: 2, Warnings: 1
+# ** Note: (vopt-4301) Memory core inferred for signal 'RAM' width=32, depth=256, type=RAM at location riscv_single.sv:351
+# Loading sv_std.std
+# Loading work.testbench(fast)
+# Loading work.top(fast)
+# Loading work.riscvsingle(fast)
+# Loading work.controller(fast)
+# Loading work.maindec(fast)
+# Loading work.aludec(fast)
+# Loading work.datapath(fast)
+# Loading work.flopr(fast)
+# Loading work.adder(fast)
+# Loading work.mux2(fast)
+# Loading work.regfile(fast)
+# Loading work.extend(fast)
+# Loading work.alu(fast)
+# Loading work.mux3(fast)
+# Loading work.imem(fast)
+# Loading work.dmem(fast)
+# ** Note: (vsim-8900) Creating design debug database vsim.dbg.
+# End time: 12:17:12 on Mar 03,2025, Elapsed time: 0:11:06
+# Errors: 0, Warnings: 0

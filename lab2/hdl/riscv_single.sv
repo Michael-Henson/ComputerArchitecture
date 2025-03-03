@@ -29,13 +29,13 @@
 //  bgeu          1100011   111       immediate
 //  blt           1100011   100       immediate
 //  bltu          1100011   110       immediate
-//  bne           1100011   001       immediate
+//  bne           1100011   001       immediate   Done?
 //  jalr          1100111   000       immediate
 //  lb            0000011   000       immediate
 //  lbu           0000011   100       immediate
 //  lh            0000011   001       immediate
 //  lhu           0000011   101       immediate
-//  lui           0110111   immediate immediate
+//  lui           0110111   immediate immediate   Done?
 //  sb            0100011   000       immediate
 //  sh            0100011   001       immediate
 //  sll           0110011   001       0000000
@@ -43,7 +43,7 @@
 //  sltiu         0010011   011       immediate
 //  sltu          0110011   011       0000000
 //  sra           0110011   101       0100000
-//  srai          0010011   101       010000*
+//  srai          0010011   101       010000*     Done?
 //  srl           0110011   101       0000000
 //  srli          0010011   101       000000*
 //  xor           0110011   100       0000000
@@ -66,7 +66,7 @@ module testbench();
    initial
      begin
 	string memfilename;
-        memfilename = {"../testing/lui.memfile"};
+        memfilename = {"../testing/srai.memfile"};
         $readmemh(memfilename, dut.imem.RAM);
      end
 
@@ -166,11 +166,23 @@ module maindec (input  logic [6:0] op,
        7'b0010011: controls = 12'b1_000_1_0_00_0_10_0; // I–type ALU addi //slli, sltiu, srai, srli, xori
        7'b1101111: controls = 12'b1_011_0_0_10_0_00_1; // jal 
        7'b1100111: controls = 12'b0_000_x_0_10_0_xx_1; //jalr
-       7'b0110111: controls = 12'b1_100_1_0_01_0_11_0; //lui
+       7'b0110111: controls = 12'b1_100_1_0_11_0_11_0; //lui
        default: controls = 12'bx_xxx_x_x_xx_x_xx_x; // ???
      endcase // case (op)
    
 endmodule // maindec
+
+//RegWrite - Sets WE3 in the register file
+//ImmSrc - Type to use in extend
+//ALUSrc - Switches Mux 2 between RD2(register file)(0) or Immext(extend)(1)
+//MemWrite - Sets WE(Data Memory)
+//ResultSrc - Switches Mux3 between ALUResult(00) or ReadData(01) or ImmExt(10)
+//Branch - Same as jump
+//ALUOp - Code used in aludec
+//Jump - Determines wether to PC+4 or jump elsewhere
+
+
+
 
 module aludec (input  logic       opb5,
 	       input  logic [2:0] funct3,
@@ -194,7 +206,7 @@ module aludec (input  logic       opb5,
           3'b010: ALUControl = 3'b101; // slt, slti
           3'b110: ALUControl = 3'b011; // or, ori //bltu
           3'b111: ALUControl = 3'b010; // and, andi // bgeu
-          //3'b101: ALUControl = 3'b //bge, lhu, sra, srai, srl, srli
+          3'b101: ALUControl = 3'b100; //bge, lhu, sra, srai, srl, srli
           //3'b100: ALUControl = 3'b //lt, lbu, xor, xori
           //3'b001: ALUControl = 3'b //bne, lh, sh, sll, slli
           //3'b000: ALUControl = 3'b //jalr, lb, sb
@@ -235,7 +247,7 @@ module datapath (input  logic        clk, reset,
    // ALU logic
    mux2 #(32)  srcbmux (WriteData, ImmExt, ALUSrc, SrcB);
    alu  alu (SrcA, SrcB, ALUControl, ALUResult, Zero);
-   mux3 #(32) resultmux (ALUResult, ReadData, PCPlus4,ResultSrc, Result);
+   mux3 #(32) resultmux (ALUResult, ReadData, ImmExt, ResultSrc, Result);
 
 endmodule // datapath
 
@@ -357,15 +369,14 @@ module alu (input  logic [31:0] a, b,
    assign sum = a + condinvb + alucontrol[0];
    assign isAddSub = ~alucontrol[2] & ~alucontrol[1] |
                      ~alucontrol[1] & alucontrol[0];   
-  assign b = 32'b1;
    always_comb
      case (alucontrol)
        3'b000:  result = sum;         // add
        3'b001:  result = sum;         // subtract
        3'b010:  result = a & b;       // and
        3'b011:  result = a | b;       // or
+       3'b100:  result = b >>> 6;     // srai
        3'b101:  result = sum[31] ^ v; // slt     
-       3'b110:  result = b;
 
        default: result = 32'bx;
      endcase
