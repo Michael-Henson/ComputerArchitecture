@@ -1,24 +1,15 @@
-# //  Questa Sim-64
-# //  Version 2024.3_2 linux_x86_64 Nov 25 2024
-# //
-# // Unpublished work. Copyright 2024 Siemens
-# //
-# // This material contains trade secrets or otherwise confidential information
-# // owned by Siemens Industry Software Inc. or its affiliates (collectively,
-# // "SISW"), or its licensors. Access to and use of this information is strictly
-# // limited as set forth in the Customer's applicable agreements with SISW.
-# //
-# // This material may not be copied, distributed, or otherwise disclosed outside
-# // of the Customer's facilities without the express written permission of SISW,
-# // and may not be used in any way not expressly authorized by SISW.
-# //
 # do riscv_single.do
 # ** Warning: (vdel-134) Unable to remove locked optimized design "_opt".  Locker is jstine@sakuya.ecen.okstate.edu.
+# Error 133: Unable to remove directory "C:/Users/creep/OneDrive/Desktop/ComputerArchitecture/lab2/hdl/work/@_opt1/_data".
+# Error 133: Unable to remove directory "C:/Users/creep/OneDrive/Desktop/ComputerArchitecture/lab2/hdl/work/@_opt1/_viscom".
+# Error 133: Unable to remove directory "C:/Users/creep/OneDrive/Desktop/ComputerArchitecture/lab2/hdl/work/@_opt1".
+# Error 133: Unable to remove directory "C:/Users/creep/OneDrive/Desktop/ComputerArchitecture/lab2/hdl/work/_dbcontainer/#64_opt1".
+# Error 133: Unable to remove directory "C:/Users/creep/OneDrive/Desktop/ComputerArchitecture/lab2/hdl/work/_dbcontainer".
 # ** Warning: (vlib-34) Library already exists at "work".
 # Errors: 0, Warnings: 1
-# QuestaSim-64 vlog 2024.3_2 Compiler 2024.11 Nov 25 2024
-# Start time: 18:00:36 on Feb 24,2025
-# vlog -reportprogress 300 riscv_single.sv 
+# Model Technology ModelSim SE-64 vlog 2021.3 Compiler 2021.07 Jul 13 2021
+# Start time: 10:04:37 on Mar 03,2025
+# vlog riscv_single.sv 
 # -- Compiling module testbench
 # -- Compiling module riscvsingle
 # -- Compiling module controller
@@ -40,34 +31,20 @@
 # Top level modules:
 # 	testbench
 # 	flopenr
-# End time: 18:00:36 on Feb 24,2025, Elapsed time: 0:00:00
+# End time: 10:04:37 on Mar 03,2025, Elapsed time: 0:00:00
 # Errors: 0, Warnings: 0
 # vsim -debugdb -voptargs="+acc" work.testbench 
-# Start time: 18:00:36 on Feb 24,2025
+# Start time: 10:04:37 on Mar 03,2025
 # ** Note: (vsim-3812) Design is being optimized...
 # ** Note: (vsim-8611) Generating debug db.
-# ** Warning: (vopt-10587) Some optimizations are turned off because the +acc switch is in effect. This will cause your simulation to run slowly. Please use -access/-debug to maintain needed visibility. The +acc switch would be deprecated in a future release.
-# Support of the MGLS_LICENSE_FILE and LM_LICENSE_FILE licensing environment variables will be discontinued starting with the 2025.1 release. Please update to using the SALT_LICENSE_SERVER variable.
-# Please contact Siemens EDA Customer Support (https://support.sw.siemens.com/) for assistance.
-# ** Note: (vopt-4301) Memory core inferred for signal 'RAM' width=32, depth=256, type=RAM at location riscv_single.sv:339
-# ** Note: (vsim-12126) Error and warning message counts have been restored: Errors=0, Warnings=1.
-# Loading sv_std.std
-# Loading work.testbench(fast)
-# Loading work.top(fast)
-# Loading work.riscvsingle(fast)
-# Loading work.controller(fast)
-# Loading work.maindec(fast)
-# Loading work.aludec(fast)
-# Loading work.datapath(fast)
-# Loading work.flopr(fast)
-# Loading work.adder(fast)
-# Loading work.mux2(fast)
-# Loading work.regfile(fast)
-# Loading work.extend(fast)
-# Loading work.alu(fast)
-# Loading work.mux3(fast)
-# Loading work.imem(fast)
-# Loading work.dmem(fast)
-# ** Note: (vsim-8900) Creating design debug database vsim.dbg.
-# End time: 18:01:23 on Feb 24,2025, Elapsed time: 0:00:47
-# Errors: 0, Warnings: 1
+# ** Error: (vopt-7) Failed to open  file "C:/Users/creep/OneDrive/Desktop/ComputerArchitecture/lab2/hdl/work/@_opt1/_deps" in read mode.
+# File exists. (errno = EEXIST)
+# ** Warning: (vopt-56) Problem with optimized design dependency file "C:/Users/creep/OneDrive/Desktop/ComputerArchitecture/lab2/hdl/work/@_opt1/_deps" - file open failed.
+# No such file or directory. (errno = ENOENT)
+# ** Fatal: (vopt-8) Problem while reading dependency file "_deps".
+# No such file or directory. (errno = ENOENT)
+# Vopt Compiler exiting
+# ** Note: (vsim-12126) Error and warning message counts have been restored: Errors=2, Warnings=1.
+# Error loading design
+# End time: 10:04:37 on Mar 03,2025, Elapsed time: 0:00:00
+# Errors: 2, Warnings: 1
