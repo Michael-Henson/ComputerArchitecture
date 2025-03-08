@@ -25,13 +25,14 @@
 //  sw            0100011   010       immediate
 //  jal           1101111   immediate immediate
 //-------------added-------------------
+//  auipc         0010111   immediate immediate   In progress
 //  bge           1100011   101       immediate   Done because programming is EASY
-//  bgeu          1100011   111       immediate   in progress
+//  bgeu          1100011   111       immediate   done
 //  blt           1100011   100       immediate   Done!
 //  bltu          1100011   110       immediate   Sortof Done
 //  bne           1100011   001       immediate   Done!
-//  jalr          1100111   000       immediate
-//  lb            0000011   000       immediate
+//  jalr          1100111   000       immediate   In progress !! waiting on AUIPC to test... 
+//  lb            0000011   000       immediate   
 //  lbu           0000011   100       immediate
 //  lh            0000011   001       immediate
 //  lhu           0000011   101       immediate
@@ -66,7 +67,7 @@ module testbench();
    initial
      begin
 	string memfilename;
-        memfilename = {"../testing/bgeu.memfile"};
+        memfilename = {"../testing/auipc.memfile"};
         $readmemh(memfilename, dut.imem.RAM);
      end
 
@@ -115,7 +116,7 @@ module riscvsingle (input  logic        clk, reset,
 		 ALUSrc, RegWrite, Jump,
 		 ImmSrc, ALUControl);
    datapath dp (clk, reset, ResultSrc, PCSrc,
-		ALUSrc, RegWrite,
+		ALUSrc, RegWrite, Jump,
 		ImmSrc, ALUControl,
 		Zero, N, V, C, PC, Instr,
 		ALUResult, WriteData, ReadData);
@@ -131,7 +132,8 @@ module controller (input  logic [6:0] op,
 		   output logic       PCSrc, ALUSrc,
 		   output logic       RegWrite, Jump,
 		   output logic [2:0] ImmSrc,
-		   output logic [2:0] ALUControl);
+		   output logic [2:0] ALUControl
+       );
    
    logic [1:0] 			      ALUOp;
    logic 			      Branch, BranchCondition;
@@ -149,6 +151,7 @@ module controller (input  logic [6:0] op,
       3'b111: assign BranchCondition = C; //If greater than or equal to unsigned
         default: assign BranchCondition = 1'bx;
     endcase
+    
    assign PCSrc = ((((Branch) & (BranchCondition)) | (Jump)));
    
 endmodule // controller
@@ -157,7 +160,7 @@ module maindec (input  logic [6:0] op,
 		output logic [1:0] ResultSrc,
 		output logic 	   MemWrite,
 		output logic 	   Branch, ALUSrc,
-		output logic 	   RegWrite, Jump,
+		output logic 	   RegWrite, Jump, 
 		output logic [2:0] ImmSrc,
 		output logic [1:0] ALUOp);
    
@@ -175,8 +178,10 @@ module maindec (input  logic [6:0] op,
        7'b1100011: controls = 12'b0_010_0_0_00_1_01_0; // beq //bge, bgeu, blt, bltu, bne
        7'b0010011: controls = 12'b1_000_1_0_00_0_10_0; // I–type ALU addi //slli, sltiu, srai, srli, xori
        7'b1101111: controls = 12'b1_011_0_0_10_0_00_1; // jal //Done!
-       7'b1100111: controls = 12'b1_000_1_0_00_0_00_1; //jalr
+       7'b1100111: controls = 12'b1_000_1_0_10_0_00_1; //jalr
        7'b0110111: controls = 12'b1_100_1_0_11_0_11_0; //lui //Done!
+       7'b0010111: controls = 12'b1_100_1_0_00_1_00_0; // auipc
+
        default: controls = 12'bx_xxx_x_x_xx_x_xx_x; // ???
      endcase // case (op)
    
@@ -235,24 +240,28 @@ endmodule // aludec
 module datapath (input  logic        clk, reset,
 		 input  logic [1:0]  ResultSrc,
 		 input  logic 	     PCSrc, ALUSrc,
-		 input  logic 	     RegWrite,
+		 input  logic 	     RegWrite, Jump,
 		 input  logic [2:0] ImmSrc,
 		 input  logic [2:0]  ALUControl,
-		 output logic 	     Zero, N, V, C,
+		 output logic 	     Zero, N, V, C, 
 		 output logic [31:0] PC,
 		 input  logic [31:0] Instr,
 		 output logic [31:0] ALUResult, WriteData,
 		 input  logic [31:0] ReadData);
    
-   logic [31:0] 		     PCNext, PCPlus4, PCTarget;
+   logic [31:0] 		     PCNext, PCPlus4, PCTarget, PCAddSrc;
    logic [31:0] 		     ImmExt;
    logic [31:0] 		     SrcA, SrcB;
    logic [31:0] 		     Result;
+   logic                 jalr;
+   always_comb
+     jalr = ((!ALUSrc) & Jump);
    
    // next PC logic
    flopr #(32) pcreg (clk, reset, PCNext, PC);
    adder  pcadd4 (PC, 32'd4, PCPlus4);
-   adder  pcaddbranch (PC, ImmExt, PCTarget);
+  mux2 #(32) pcAdderSource (PC, {PC[31:12] , Instr[31:20]}, jalr, PCAddSrc); //JALR mux, uses ALUSrc to distinguish JAL vs JALR
+  adder  pcaddbranch (PC, ImmExt, PCTarget);
    mux2 #(32)  pcmux (PCPlus4, PCTarget, PCSrc, PCNext);
    // register file logic
    regfile  rf (clk, RegWrite, Instr[19:15], Instr[24:20],
