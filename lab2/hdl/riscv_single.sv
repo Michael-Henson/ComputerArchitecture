@@ -26,29 +26,29 @@
 //  jal           1101111   immediate immediate
 //-------------added-------------------
 //  auipc         0010111   immediate immediate   In progress
-//  bge           1100011   101       immediate   Done because programming is EASY
-//  bgeu          1100011   111       immediate   done
+//  bge           1100011   101       immediate   Done!
+//  bgeu          1100011   111       immediate   Done!
 //  blt           1100011   100       immediate   Done!
-//  bltu          1100011   110       immediate   Sortof Done
+//  bltu          1100011   110       immediate   Done!
 //  bne           1100011   001       immediate   Done!
 //  jalr          1100111   000       immediate   In progress !! waiting on AUIPC to test... 
-//  lb            0000011   000       immediate   
-//  lbu           0000011   100       immediate
+//  lb            0000011   000       immediate   need auipc
+//  lbu           0000011   100       immediate   
 //  lh            0000011   001       immediate
 //  lhu           0000011   101       immediate
 //  lui           0110111   immediate immediate   Done!
-//  sb            0100011   000       immediate
+//  sb            0100011   000       immediate   need auipc
 //  sh            0100011   001       immediate
-//  sll           0110011   001       0000000
-//  slli          0010011   001       000000*
-//  sltiu         0010011   011       immediate
-//  sltu          0110011   011       0000000
+//  sll           0110011   001       0000000     Done!
+//  slli          0010011   001       000000*     Done!
+//  sltiu         0010011   011       immediate   Done!
+//  sltu          0110011   011       0000000     Done!
 //  sra           0110011   101       0100000     Done!
 //  srai          0010011   101       010000*     Done!
 //  srl           0110011   101       0000000     Done!
 //  srli          0010011   101       000000*     Done!
-//  xor           0110011   100       0000000
-//  xori          0010011   100       immediate
+//  xor           0110011   100       0000000     Done!
+//  xori          0010011   100       immediate   Done!
 
 
 
@@ -109,7 +109,7 @@ module riscvsingle (input  logic        clk, reset,
    logic 				ALUSrc, RegWrite, Jump, Zero, N, V, C;
    logic [1:0] 				ResultSrc;
    logic [2:0]        ImmSrc;
-   logic [2:0] 				ALUControl;
+   logic [3:0] 				ALUControl;
    
    controller c (Instr[6:0], Instr[14:12], Instr[30], Zero, N, V, C,
 		 ResultSrc, MemWrite, PCSrc,
@@ -132,7 +132,7 @@ module controller (input  logic [6:0] op,
 		   output logic       PCSrc, ALUSrc,
 		   output logic       RegWrite, Jump,
 		   output logic [2:0] ImmSrc,
-		   output logic [2:0] ALUControl
+		   output logic [3:0] ALUControl
        );
    
    logic [1:0] 			      ALUOp;
@@ -203,35 +203,45 @@ module aludec (input  logic       opb5,
 	       input  logic [2:0] funct3,
 	       input  logic 	  funct7b5,
 	       input  logic [1:0] ALUOp,
-	       output logic [2:0] ALUControl);
+	       output logic [3:0] ALUControl);
    
    logic 			  RtypeSub;
    
    assign RtypeSub = funct7b5 & opb5; // TRUE for R–type subtract
    always_comb
      case(ALUOp)
-       2'b00: ALUControl = 3'b000; // addition
-       2'b01: ALUControl = 3'b001; // subtraction
-       //2'b10: ALUControl = 3'b
-       2'b11: ALUControl = 3'b110; // lui (and)
+       2'b00: ALUControl = 4'b0000; // addition
+       2'b01: ALUControl = 4'b0001; // subtraction
+       //2'b10: 
+       2'b11: ALUControl = 4'b0110; // lui (and)
        default: case(funct3) // R–type or I–type ALU
                   3'b000: if (RtypeSub)
-                          ALUControl = 3'b001; // sub
+                          ALUControl = 4'b0001; // sub
                           else
-                          ALUControl = 3'b000; // add, addi
-                  3'b010: ALUControl = 3'b101; // slt, slti
-                  3'b110: ALUControl = 3'b011; // or, ori //bltu
-                  3'b111: ALUControl = 3'b010; // and, andi // bgeu
+                          ALUControl = 4'b0000; // add, addi
+                  3'b001: if(ALUOp)
+                          ALUControl = 4'b1001; //sll
+                          else
+                          ALUControl = 4'b1010; //slli
+                  3'b010: ALUControl = 4'b0101; // slt, slti
+                  3'b011: ALUControl = 4'b1011;
+                  3'b110: ALUControl = 4'b0011; // or, ori 
+                  3'b111: ALUControl = 4'b0010; // and, andi 
                   3'b101: if(funct7b5)
-                          ALUControl = 3'b100; //srli
+                          ALUControl = 4'b0100; //srli
                           else
-                          ALUControl = 3'b110; //bge, lhu, sra, srai, srl, srli
-          3'b100: ALUControl = 3'b101; //lt, lbu, xor, xori
-          //3'b001: ALUControl = 3'b //bne, lh, sh, sll, slli
+                          ALUControl = 4'b0110; //lhu, sra, srai, srl, srli
+                  3'b100: if(ALUOp == 2'b10) //xor xori
+                            if(funct7b5)
+                            ALUControl = 4'b1000; //xori
+                            else
+                            ALUControl = 4'b0111; //xor
+                          else
+                          ALUControl = 4'b0101; //lbu
           //3'b000: ALUControl = 3'b //jalr, lb, sb
           //3'b011 sltiu, sltu
           //imm lui
-          default: ALUControl = 3'bxxx; // ???
+          default: ALUControl = 4'bxxxx; // ???
         endcase // case (funct3)       
      endcase // case (ALUOp)
    
@@ -242,7 +252,7 @@ module datapath (input  logic        clk, reset,
 		 input  logic 	     PCSrc, ALUSrc,
 		 input  logic 	     RegWrite, Jump,
 		 input  logic [2:0] ImmSrc,
-		 input  logic [2:0]  ALUControl,
+		 input  logic [3:0]  ALUControl,
 		 output logic 	     Zero, N, V, C, 
 		 output logic [31:0] PC,
 		 input  logic [31:0] Instr,
@@ -361,7 +371,7 @@ endmodule // top
 module imem (input  logic [31:0] a,
 	     output logic [31:0] rd);
    
-   logic [31:0] 		 RAM[1023:0];
+   logic [31:0] 		 RAM[2047:0];
    
    assign rd = RAM[a[31:2]]; // word aligned
    
@@ -380,7 +390,7 @@ module dmem (input  logic        clk, we,
 endmodule // dmem
 
 module alu (input  logic [31:0] a, b,
-            input  logic [2:0] 	alucontrol,
+            input  logic [3:0] 	alucontrol,
             output logic [31:0] result,
             output logic 	zero, n, v, c);
 
@@ -394,13 +404,18 @@ module alu (input  logic [31:0] a, b,
                      ~alucontrol[1] & alucontrol[0];   
    always_comb
      case (alucontrol)
-       3'b000:  result = sum;         // add
-       3'b001:  result = sum;         // subtract
-       3'b010:  result = a & b;       // and
-       3'b011:  result = a | b;       // or
-       3'b100:  result = $signed(a) >>> b[4:0];     // srai
-       3'b101:  result = sum[31] ^ v; // slt     
-       3'b110:  result = $unsigned(a) >> b[4:0]; //srli
+       4'b0000:  result = sum;         // add
+       4'b0001:  result = sum;         // subtract
+       4'b0010:  result = a & b;       // and
+       4'b0011:  result = a | b;       // or
+       4'b0100:  result = $signed(a) >>> b[4:0];     // srai
+       4'b0101:  result = sum[31] ^ v; // slt     
+       4'b0110:  result = $unsigned(a) >> b[4:0]; //srli
+       4'b0111:  result = a ^ b;       //xor
+       4'b1000:  result = a ^ b;       //xori?
+       4'b1001:  result = a << b[4:0]; //sll
+       4'b1010:  result = a << b;      //slli
+       4'b1011:  result = a < b; //sltiu, sltu
 
        default: result = 32'bx;
      endcase
