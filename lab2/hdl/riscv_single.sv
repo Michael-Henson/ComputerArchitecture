@@ -32,13 +32,13 @@
 //  bltu          1100011   110       immediate   Done!
 //  bne           1100011   001       immediate   Done!
 //  jalr          1100111   000       immediate   Done!
-//  lb            0000011   000       immediate   need auipc
-//  lbu           0000011   100       immediate   
-//  lh            0000011   001       immediate
-//  lhu           0000011   101       immediate
+//  lb            0000011   000       immediate   fail
+//  lbu           0000011   100       immediate   fail
+//  lh            0000011   001       immediate   fail
+//  lhu           0000011   101       immediate   fail
 //  lui           0110111   immediate immediate   Done!
-//  sb            0100011   000       immediate   need auipc
-//  sh            0100011   001       immediate
+//  sb            0100011   000       immediate   9/22 test successful
+//  sh            0100011   001       immediate   9/22 test successful
 //  sll           0110011   001       0000000     Done!
 //  slli          0010011   001       000000*     Done!
 //  sltiu         0010011   011       immediate   Done!
@@ -67,7 +67,7 @@ module testbench();
    initial
      begin
 	string memfilename;
-        memfilename = {"../testing/lw.memfile"};
+        memfilename = {"../testing/lb.memfile"};
         $readmemh(memfilename, dut.imem.RAM);
      end
 

@@ -83,7 +83,7 @@ configure wave -childrowmargin 2
 run 6000 ns
 
 -- Add schematic
-add schematic -full sim:/testbench/dut/rv32single
+# add schematic -full sim:/testbench/dut/rv32single
 
 -- Save memory for checking (if needed)
 # mem save -outfile memory.dat -wordsperline 1 /testbench/dut/dmem/RAM

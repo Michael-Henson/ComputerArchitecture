@@ -15,11 +15,13 @@ tdat:
 .text
 
 __start:
+  li x1, 0xff
+  sb a2, x1
 
 test01:
   li a1, 1
   la x1, tdat
-  lb x30, 0(x1)
+  lb x30, a2
   li x29, 0xffffffff
   bne x30, x29, fail
 
