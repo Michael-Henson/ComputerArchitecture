@@ -32,13 +32,13 @@
 //  bltu          1100011   110       immediate   Done!
 //  bne           1100011   001       immediate   Done!
 //  jalr          1100111   000       immediate   Done!
-//  lb            0000011   000       immediate   fail
+//  lb            0000011   000       immediate   Done but test doesn't work
 //  lbu           0000011   100       immediate   fail
-//  lh            0000011   001       immediate   fail
+//  lh            0000011   001       immediate   Done but test doesn't work
 //  lhu           0000011   101       immediate   fail
 //  lui           0110111   immediate immediate   Done!
-//  sb            0100011   000       immediate   9/22 Test Successful. Test Error?
-//  sh            0100011   001       immediate   9/22 Test Successful. Test Error?
+//  sb            0100011   000       immediate   Done!
+//  sh            0100011   001       immediate   Done!
 //  sll           0110011   001       0000000     Done!
 //  slli          0010011   001       000000*     Done!
 //  sltiu         0010011   011       immediate   Done!
@@ -67,7 +67,7 @@ module testbench();
    initial
      begin
 	string memfilename;
-        memfilename = {"../testing/sb.memfile"};
+        memfilename = {"../riscvtest/test_hw.memfile"};
         $readmemh(memfilename, dut.imem.RAM);
      end
 
@@ -251,10 +251,11 @@ module datapath (input  logic        clk, reset,
 		 input  logic [31:0] ReadData);
    
    logic [31:0] 		     PCNext, PCPlus4, PCTarget, PCAddSrc;
-   logic [31:0] 		     ImmExt;
+   logic [31:0] 		     ImmExt, ReadData2;
    logic [31:0] 		     SrcA, SrcB, SrcAfinal;
    logic [31:0] 		     Result;
    logic                 jalr, ALUASrc;
+   logic [1:0] 		     readDataSwitch;
    always_comb
      jalr = ((ALUSrc[0]) & Jump);
      
@@ -275,7 +276,20 @@ module datapath (input  logic        clk, reset,
    mux2 #(32)  srcamux (SrcA, PC, ALUSrc[1], SrcAfinal);
    mux2 #(32)  srcbmux (WriteData, ImmExt, ALUSrc[0], SrcB);
    alu  alu (SrcAfinal, SrcB, ALUControl, ALUResult, Zero, N, V, C);
-   mux4 #(32) resultmux (ALUResult, ReadData, PCPlus4, ImmExt, ResultSrc, Result);
+
+
+  always_comb
+    case(Instr[14:12])
+        
+        3'b010: assign readDataSwitch = 2'b00; //lw
+        3'b000: assign readDataSwitch = 2'b10; //lb
+        3'b001: assign readDataSwitch = 2'b01; //lh
+        default: assign readDataSwitch = 2'bxx;
+     endcase // case (Instr[14:12])
+   mux3 #(32) readdatamux (ReadData, {{16{ReadData[15]}}, ReadData[15:0]}, {{24{ReadData[7]}}, ReadData[7:0]}, readDataSwitch, ReadData2);
+
+
+   mux4 #(32) resultmux (ALUResult, ReadData2, PCPlus4, ImmExt, ResultSrc, Result);
 
 endmodule // datapath
 
@@ -363,12 +377,15 @@ module top (input  logic        clk, reset,
 	    output logic 	MemWrite);
    
    logic [31:0] 		PC, Instr, ReadData;
+
+
    
    // instantiate processor and memories
    riscvsingle rv32single (clk, reset, PC, Instr, MemWrite, DataAdr,
 			   WriteData, ReadData);
    imem imem (PC, Instr);
    dmem dmem (clk, MemWrite, DataAdr, WriteData, ReadData);
+   
    
 endmodule // top
 
