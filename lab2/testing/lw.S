@@ -18,7 +18,7 @@ __start:
 
 test01:
   li a1, 1
-  la x1, tdat
+  la x1, tdat1
   lw x30, 0(x1)
   li x29, 0x00ff00ff
   bne x30, x29, fail
