@@ -11,10 +11,10 @@ z2
 cModel Technology
 Z0 dC:/Users/creep/OneDrive/Desktop/ComputerArchitecture/lab2/hdl
 T_opt
-!s110 1742843315
-V5MPdTFbH5VDM71V:PU?PZ2
+!s110 1742867801
+V]_RWKYI6[f9kZZBLf58Ma2
 04 9 4 work testbench fast 0
-=1-cc1531237ecc-67e1adb3-14b-2b08
+=1-cc1531237ecc-67e20d59-f2-770
 !s124 OEM100
 o-quiet -auto_acc_if_foreign -work work -debugdb +acc
 Z1 tCvgOpt 0
@@ -22,13 +22,13 @@ n@_opt
 OL;O;2021.3;73
 vadder
 Z2 DXx6 sv_std 3 std 0 22 9oUSJO;AeEaW`l:M@^WG92
-Z3 !s110 1742843314
+Z3 !s110 1742867800
 !i10b 1
 !s100 g510OW:CIbfX20?7>biSa1
 I^Q_C9cm[2jP3Zh=TkQjf81
 S1
 R0
-Z4 w1742843269
+Z4 w1742867788
 Z5 8riscv_single.sv
 Z6 Friscv_single.sv
 !i122 0
@@ -38,7 +38,7 @@ Z8 OL;L;2021.3;73
 r1
 !s85 0
 31
-Z9 !s108 1742843314.000000
+Z9 !s108 1742867800.000000
 Z10 !s107 riscv_single.sv|
 Z11 !s90 -reportprogress|300|riscv_single.sv|
 !i113 0
@@ -264,8 +264,8 @@ vmaindec
 R2
 R3
 !i10b 1
-!s100 ON?1Z::`cm8g6JBa4jo>O0
-IiifF4bd5X`LCONHBLcOLn1
+!s100 SKEccKH_^S;i89[=5njT63
+IRF6^z80z04IQ72h5bRg<H3
 S1
 R0
 R4
@@ -408,8 +408,8 @@ vtestbench
 R2
 R3
 !i10b 1
-!s100 N2SA8CNfe:@_F3hPF34:^3
-I[W[mX<XM7=ZK6PnQY`;DF1
+!s100 TCGo8FdQ]O>5HD9abi[lP3
+IaAO?YWa=1><SAD7@kiJD<1
 S1
 R0
 R4
