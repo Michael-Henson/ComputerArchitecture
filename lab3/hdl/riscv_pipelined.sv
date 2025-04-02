@@ -65,44 +65,44 @@
 
 //-----------Provided------------------
 //  Instruction   opcode    funct3    funct7
-//  add           0110011   000       0000000    Works
-//  sub           0110011   000       0100000
-//  and           0110011   111       0000000
-//  or            0110011   110       0000000
-//  slt           0110011   010       0000000
-//  addi          0010011   000       immediate
-//  andi          0010011   111       immediate
-//  ori           0010011   110       immediate
-//  slti          0010011   010       immediate
-//  beq           1100011   000       immediate
+//  add           0110011   000       0000000     Works
+//  sub           0110011   000       0100000     Works
+//  and           0110011   111       0000000     Works
+//  or            0110011   110       0000000     Works
+//  slt           0110011   010       0000000     Works
+//  addi          0010011   000       immediate   Works
+//  andi          0010011   111       immediate   Works
+//  ori           0010011   110       immediate   Works
+//  slti          0010011   010       immediate   Works
+//  beq           1100011   000       immediate   Works
 //  lw	          0000011   010       immediate
 //  sw            0100011   010       immediate
 //  jal           1101111   immediate immediate
 //-------------added-------------------
-//  auipc         0010111   immediate immediate   
-//  bge           1100011   101       immediate   
-//  bgeu          1100011   111       immediate   
-//  blt           1100011   100       immediate   
-//  bltu          1100011   110       immediate   
-//  bne           1100011   001       immediate   
+//  auipc         0010111   immediate immediate   Done!
+//  bge           1100011   101       immediate   Done!
+//  bgeu          1100011   111       immediate   Done!
+//  blt           1100011   100       immediate   Done!
+//  bltu          1100011   110       immediate   Done!
+//  bne           1100011   001       immediate   Done!
 //  jalr          1100111   000       immediate   
 //  lb            0000011   000       immediate   
 //  lbu           0000011   100       immediate   
 //  lh            0000011   001       immediate   
 //  lhu           0000011   101       immediate   
-//  lui           0110111   immediate immediate   
+//  lui           0110111   immediate immediate   Done!
 //  sb            0100011   000       immediate   
 //  sh            0100011   001       immediate   
-//  sll           0110011   001       0000000     
-//  slli          0010011   001       000000*     
-//  sltiu         0010011   011       immediate   
-//  sltu          0110011   011       0000000     
-//  sra           0110011   101       0100000     
-//  srai          0010011   101       010000*     
-//  srl           0110011   101       0000000     
-//  srli          0010011   101       000000*     
-//  xor           0110011   100       0000000     
-//  xori          0010011   100       immediate   
+//  sll           0110011   001       0000000     Done!
+//  slli          0010011   001       000000*     Done!
+//  sltiu         0010011   011       immediate   Done!
+//  sltu          0110011   011       0000000     Done!
+//  sra           0110011   101       0100000     Done!
+//  srai          0010011   101       010000*     Done!
+//  srl           0110011   101       0000000     Done!
+//  srli          0010011   101       000000*     Done!
+//  xor           0110011   100       0000000     Done!
+//  xori          0010011   100       immediate   Done!
 
 module testbench();
 
@@ -118,7 +118,7 @@ module testbench();
    initial
      begin
 	string memfilename;
-        memfilename = {"../testing/lui.memfile"};
+        memfilename = {"../testing/auipc.memfile"};
 	$readmemh(memfilename, dut.imem.RAM);
      end
    
@@ -176,7 +176,7 @@ module riscv(input  logic        clk, reset,
    logic [2:0] ImmSrcD;
    logic [3:0] BranchLogicE;
    logic 			 PCSrcE;
-   logic [2:0] 			 ALUControlE;
+   logic [3:0] 			 ALUControlE;
    logic 			 ALUSrcE;
    logic 			 ResultSrcEb0;
    logic 			 RegWriteM;
@@ -218,7 +218,7 @@ module controller(input  logic		 clk, reset,
                   input logic 	     FlushE, 
                   input logic  [3:0] BranchLogicE, 
                   output logic 	     PCSrcE, // for datapath and Hazard Unit
-                  output logic [2:0] ALUControlE, 
+                  output logic [3:0] ALUControlE, 
                   output logic 	     ALUSrcAE, ALUSrcBE,
                   output logic 	     ResultSrcEb0, // for Hazard Unit
                   // Memory stage control signals
@@ -235,7 +235,7 @@ module controller(input  logic		 clk, reset,
    logic 			     JumpD, JumpE;
    logic 			     BranchD, BranchE;
    logic [2:0] 			     ALUOpD;
-   logic [2:0] 			     ALUControlD;
+   logic [3:0] 			     ALUControlD;
    logic 			     ALUSrcAD, ALUSrcBD;
    logic [2:0]     funct3E;
    logic           N, V, C, BranchCondition;
@@ -248,7 +248,7 @@ module controller(input  logic		 clk, reset,
 
    
    // Execute stage pipeline control register and logic
-   floprc #(14) controlregE(clk, reset, FlushE,
+   floprc #(15) controlregE(clk, reset, FlushE,
                             {RegWriteD, ResultSrcD, MemWriteD, JumpD, BranchD, ALUControlD, ALUSrcAD, ALUSrcBD, funct3D},
                             {RegWriteE, ResultSrcE, MemWriteE, JumpE, BranchE, ALUControlE, ALUSrcAE, ALUSrcBE, funct3E});
     assign {Zero, N, V, C} = BranchLogicE;
@@ -297,7 +297,7 @@ module maindec(input  logic [6:0] op,
        7'b0100011: controls = 14'b0_001_0_1_1_00_0_000_0; // sw
        7'b0110011: controls = 14'b1_xxx_0_0_0_00_0_010_0; // R-type 
        7'b1100011: controls = 14'b0_010_0_0_0_00_1_001_0; // beq
-       7'b0010011: controls = 14'b1_000_0_1_0_00_0_010_0; // I-type ALU
+       7'b0010011: controls = 14'b1_000_0_1_0_00_0_010_0; // I-type ALU //slli, sltiu, srai, srli, xori
        7'b1101111: controls = 14'b1_011_0_0_0_10_0_000_1; // jal
        7'b0110111: controls = 14'b1_100_1_1_0_00_0_000_0; // lui       
        7'b0000000: controls = 14'b0_000_0_0_0_00_0_000_0; // need valid values at reset
@@ -318,26 +318,43 @@ module aludec(input  logic       opb5,
               input logic [2:0]  funct3,
               input logic 	 funct7b5, 
               input logic [2:0]  ALUOp,
-              output logic [2:0] ALUControl);
+              output logic [3:0] ALUControl);
 
    logic 			 RtypeSub;
    assign RtypeSub = funct7b5 & opb5;  // TRUE for R-type subtract instruction
 
    always_comb
-     case(ALUOp)
-       2'b000:                ALUControl = 3'b000; // addition
-       2'b001:                ALUControl = 3'b001; // subtraction
+    case(ALUOp)
+       3'b000:                ALUControl = 4'b0000; // addition
+       3'b001:                ALUControl = 4'b0001; // subtraction
+       3'b011:                ALUControl = 4'b0110; //lui (and)
        default: case(funct3) // R-type or I-type ALU
                   3'b000:  if (RtypeSub) 
-                    ALUControl = 3'b001; // sub
+                    ALUControl = 4'b0001; // sub
                   else          
-                    ALUControl = 3'b000; // add, addi
-                  3'b010:    ALUControl = 3'b101; // slt, slti
-                  3'b110:    ALUControl = 3'b011; // or, ori
-                  3'b111:    ALUControl = 3'b010; // and, andi
-                  default:   ALUControl = 3'bxxx; // ???
-		endcase
-     endcase
+                    ALUControl = 4'b0000; // add, addi
+                  3'b001:   if(ALUOp)
+                            ALUControl = 4'b0110; // sll
+                            else
+                            ALUControl = 4'b1011; // slli
+                  3'b010:   ALUControl = 4'b0101; // slt, slti
+                  3'b011:   ALUControl = 4'b1100; // sltiu, sltu
+                  3'b100:   if(ALUOp == 3'b010)
+                              if(funct7b5)
+                              ALUControl = 4'b1010; // xori?
+                              else
+                              ALUControl = 4'b0100; // xor
+                            else
+                            ALUControl = 4'b0101; //lbu
+                  3'b101:   if(funct7b5)
+                            ALUControl = 4'b1000; // srai
+                            else
+                            ALUControl = 4'b1001; //lhu, sra, srai, srl, srli
+                  3'b110:   ALUControl = 4'b0011; // or, ori
+                  3'b111:   ALUControl = 4'b0010; // and, andi
+                  default:   ALUControl = 4'bxxxx; // ???
+		            endcase
+    endcase
 endmodule
 
 module datapath(input logic clk, reset,
@@ -355,7 +372,7 @@ module datapath(input logic clk, reset,
                 input logic 	    FlushE,
                 input logic [1:0]   ForwardAE, ForwardBE,
                 input logic 	    PCSrcE,
-                input logic [2:0]   ALUControlE,
+                input logic [3:0]   ALUControlE,
                 input logic 	    ALUSrcAE, ALUSrcBE,
                 output logic [3:0]	    BranchLogicE,
                 // Memory stage signals
@@ -500,13 +517,13 @@ module extend(input  logic [31:7] instr,
    always_comb
      case(immsrc) 
        // I-type 
-       2'b000:   immext = {{20{instr[31]}}, instr[31:20]};  
+       3'b000:   immext = {{20{instr[31]}}, instr[31:20]};  
        // S-type (stores)
-       2'b001:   immext = {{20{instr[31]}}, instr[31:25], instr[11:7]}; 
+       3'b001:   immext = {{20{instr[31]}}, instr[31:25], instr[11:7]}; 
        // B-type (branches)
-       2'b010:   immext = {{20{instr[31]}}, instr[7], instr[30:25], instr[11:8], 1'b0}; 
+       3'b010:   immext = {{20{instr[31]}}, instr[7], instr[30:25], instr[11:8], 1'b0}; 
        // J-type (jal)
-       2'b011:   immext = {{12{instr[31]}}, instr[19:12], instr[20], instr[30:21], 1'b0}; 
+       3'b011:   immext = {{12{instr[31]}}, instr[19:12], instr[20], instr[30:21], 1'b0}; 
        // U−type (lui/auipc) 
        3'b100:  immext = {instr[31:12], 12'h0};     
        default: immext = 32'bx; // undefined
@@ -597,7 +614,7 @@ module dmem (input  logic        clk, we,
 endmodule // dmem
 
 module alu(input  logic [31:0] a, b,
-           input  logic [2:0]  alucontrol,
+           input  logic [3:0]  alucontrol,
            output logic [31:0] result,
            output logic [3:0]  BranchLogicE);
 
@@ -612,14 +629,20 @@ module alu(input  logic [31:0] a, b,
 
    always_comb
      case (alucontrol)
-       3'b000:  result = sum;         // add
-       3'b001:  result = sum;         // subtract
-       3'b010:  result = a & b;       // and
-       3'b011:  result = a | b;       // or
-       3'b100:  result = a ^ b;       // xor
-       3'b101:  result = sum[31] ^ v; // slt
-       3'b110:  result = a << b[4:0]; // sll
-       3'b111:  result = a >> b[4:0]; // srl
+       4'b0000:  result = sum;                       // add
+       4'b0001:  result = sum;                       // subtract
+       4'b0010:  result = a & b;                     // and
+       4'b0011:  result = a | b;                     // or
+       4'b0100:  result = a ^ b;                     // xor
+       4'b0101:  result = sum[31] ^ v;               // slt
+       4'b0110:  result = a << b[4:0];               // sll
+       4'b0111:  result = a >> b[4:0];               // srl
+       4'b1000:  result = $signed(a) >>> b[4:0];     // srai
+       4'b1001:  result = $unsigned(a) >> b[4:0];    //srli
+       4'b1010:  result = a ^ b;                     //xori?
+       4'b1011:  result = a << b;                    //slli
+       4'b1100:  result = a < b;                     //sltiu, sltu
+
        default: result = 32'bx;
      endcase
 
