@@ -118,7 +118,7 @@ module testbench();
    initial
      begin
 	string memfilename;
-        memfilename = {"../testing/auipc.memfile"};
+        memfilename = {"../testing/lb.memfile"};
 	$readmemh(memfilename, dut.imem.RAM);
      end
    
@@ -402,13 +402,17 @@ module datapath(input logic clk, reset,
    logic [31:0] 		    WriteDataAE, WriteDataBE;
    logic [31:0] 		    PCPlus4E;
    logic [31:0] 		    PCTargetE;
+   logic [2:0]          funct3E;
    // Memory stage signals
    logic [31:0] 		    PCPlus4M;
+   logic [2:0]          funct3M;
    // Writeback stage signals
    logic [31:0] 		    ALUResultW;
-   logic [31:0] 		    ReadDataW;
+   logic [31:0] 		    ReadDataW, ReadDataW2;
    logic [31:0] 		    PCPlus4W;
    logic [31:0] 		    ResultW;
+   logic [1:0]          readDataSwitch;
+   logic [2:0]          funct3W;
 
    // Fetch stage pipeline register and logic
    mux2    #(32) pcmux(PCPlus4F, PCTargetE, PCSrcE, PCNextF);
@@ -430,9 +434,9 @@ module datapath(input logic clk, reset,
    extend         ext(InstrD[31:7], ImmSrcD, ImmExtD);
    
    // Execute stage pipeline register and logic
-   floprc #(175) regE(clk, reset, FlushE, 
-                      {RD1D, RD2D, PCD, Rs1D, Rs2D, RdD, ImmExtD, PCPlus4D}, 
-                      {RD1E, RD2E, PCE, Rs1E, Rs2E, RdE, ImmExtE, PCPlus4E});
+   floprc #(178) regE(clk, reset, FlushE, 
+                      {RD1D, RD2D, PCD, Rs1D, Rs2D, RdD, ImmExtD, PCPlus4D, funct3D}, 
+                      {RD1E, RD2E, PCE, Rs1E, Rs2E, RdE, ImmExtE, PCPlus4E, funct3E});
    
    mux3   #(32)  faemux(RD1E, ResultW, ALUResultM, ForwardAE, WriteDataAE);
    mux3   #(32)  fbemux(RD2E, ResultW, ALUResultM, ForwardBE, WriteDataBE);
@@ -442,15 +446,25 @@ module datapath(input logic clk, reset,
    adder         branchadd(ImmExtE, PCE, PCTargetE);
 
    // Memory stage pipeline register
-   flopr  #(101) regM(clk, reset, 
-                      {ALUResultE, WriteDataBE, RdE, PCPlus4E},
-                      {ALUResultM, WriteDataM, RdM, PCPlus4M});
+   flopr  #(104) regM(clk, reset, 
+                      {ALUResultE, WriteDataBE, RdE, PCPlus4E, funct3E},
+                      {ALUResultM, WriteDataM, RdM, PCPlus4M, funct3M});
    
    // Writeback stage pipeline register and logic
-   flopr  #(101) regW(clk, reset, 
-                      {ALUResultM, ReadDataM, RdM, PCPlus4M},
-                      {ALUResultW, ReadDataW, RdW, PCPlus4W});
-   mux3   #(32)  resultmux(ALUResultW, ReadDataW, PCPlus4W, ResultSrcW, ResultW);	
+   flopr  #(104) regW(clk, reset, 
+                      {ALUResultM, ReadDataM, RdM, PCPlus4M, funct3M},
+                      {ALUResultW, ReadDataW, RdW, PCPlus4W, funct3W});
+
+    always_comb
+      case(funct3W)
+        3'b010: assign readDataSwitch = 2'b00; //lw
+        3'b000: assign readDataSwitch = 2'b10; //lb
+        3'b001: assign readDataSwitch = 2'b01; //lh
+        default: assign readDataSwitch = 2'bxx;
+    endcase // case (Instr[14:12])
+  mux3 #(32) readdatamux (ReadDataW, {{16{ReadDataW[15]}}, ReadDataW[15:0]}, {{24{ReadDataW[7]}}, ReadDataW[7:0]}, readDataSwitch, ReadDataW2);
+
+   mux3   #(32)  resultmux(ALUResultW, ReadDataW2, PCPlus4W, ResultSrcW, ResultW);	
 endmodule
 
 // Hazard Unit: forward, stall, and flush
