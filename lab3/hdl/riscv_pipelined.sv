@@ -85,8 +85,8 @@
 //  blt           1100011   100       immediate   Done!
 //  bltu          1100011   110       immediate   Done!
 //  bne           1100011   001       immediate   Done!
-//  jalr          1100111   000       immediate   
-//  lb            0000011   000       immediate   
+//  jalr          1100111   000       immediate   Done!
+//  lb            0000011   000       immediate   The loaded data into readdataW doesn't get shifted. EX "lh	t5,2(ra)""
 //  lbu           0000011   100       immediate   
 //  lh            0000011   001       immediate   
 //  lhu           0000011   101       immediate   
@@ -195,7 +195,7 @@ module riscv(input  logic        clk, reset,
 		opD, funct3D, funct7b5D, ImmSrcD,
 		FlushE, BranchLogicE, PCSrcE, ALUControlE, ALUSrcAE, ALUSrcBE, ResultSrcEb0,
 		MemWriteM, RegWriteM, 
-		RegWriteW, ResultSrcW);
+		RegWriteW, ResultSrcW, JumpD);
 
    datapath dp(clk, reset,
                StallF, PCF, InstrF,
@@ -203,7 +203,7 @@ module riscv(input  logic        clk, reset,
 	       FlushE, ForwardAE, ForwardBE, PCSrcE, ALUControlE, ALUSrcAE, ALUSrcBE, BranchLogicE,
                MemWriteM, WriteDataM, ALUResultM, ReadDataM,
                RegWriteW, ResultSrcW,
-               Rs1D, Rs2D, Rs1E, Rs2E, RdE, RdM, RdW);
+               Rs1D, Rs2D, Rs1E, Rs2E, RdE, RdM, RdW, JumpD);
 
    hazard  hu(Rs1D, Rs2D, Rs1E, Rs2E, RdE, RdM, RdW,
               PCSrcE, ResultSrcEb0, RegWriteM, RegWriteW,
@@ -230,13 +230,14 @@ module controller(input  logic		 clk, reset,
                   output logic 	     RegWriteM, // for Hazard Unit				  
                   // Writeback stage control signals
                   output logic 	     RegWriteW, // for datapath and Hazard Unit
-                  output logic [1:0] ResultSrcW);
+                  output logic [1:0] ResultSrcW,
+                  output logic JumpD);
 
    // pipelined control signals
    logic 			     RegWriteD, RegWriteE;
    logic [1:0] 			     ResultSrcD, ResultSrcE, ResultSrcM;
    logic 			     MemWriteD, MemWriteE;
-   logic 			     JumpD, JumpE;
+   logic 			     JumpE;
    logic 			     BranchD, BranchE;
    logic [2:0] 			     ALUOpD;
    logic [3:0] 			     ALUControlD;
@@ -305,6 +306,7 @@ module maindec(input  logic [6:0] op,
        7'b1100011: controls = 15'b0_010_1_00_0_00_1_001_0; // beq
        7'b0010011: controls = 15'b1_000_1_01_0_00_0_010_0; // I-type ALU //slli, sltiu, srai, srli, xori
        7'b1101111: controls = 15'b1_011_0_00_0_10_0_000_1; // jal
+       7'b1100111: controls = 15'b1_000_1_10_0_10_0_000_1; //jalr
        7'b0110111: controls = 15'b1_100_0_01_0_00_0_000_0; // lui    
        7'b0010111: controls = 15'b1_100_0_10_0_00_0_000_0; // auipc   
        7'b0000000: controls = 15'b0_000_0_00_0_00_0_000_0; // need valid values at reset
@@ -314,6 +316,7 @@ endmodule
 
 //RegWrite - Sets WE3 in the register file
 //ImmSrc - Type to use in extend
+//ALUSrcA - Switches SrcA between 32'b0 (1) or RD1E(00), ResultW(01), ALUResultM(10)
 //ALUSrc - Switches SrcB between RD2(register file)(0) or Immext(extend)(1)
 //MemWrite - Sets WE(Data Memory)
 //ResultSrc - Switches Result between ALUResult(00) or ReadData(01) or PCplus4(10) or ImmExt(11)
@@ -392,7 +395,8 @@ module datapath(input logic clk, reset,
                 input logic [1:0]   ResultSrcW,
                 // Hazard Unit signals 
                 output logic [4:0]  Rs1D, Rs2D, Rs1E, Rs2E,
-                output logic [4:0]  RdE, RdM, RdW);
+                output logic [4:0]  RdE, RdM, RdW,
+                input logic JumpD);
 
    // Fetch stage signals
    logic [31:0] 		    PCNextF, PCPlus4F;
@@ -416,11 +420,17 @@ module datapath(input logic clk, reset,
    logic [2:0]          funct3M;
    // Writeback stage signals
    logic [31:0] 		    ALUResultW;
-   logic [31:0] 		    ReadDataW, ReadDataW2;
+   logic [31:0] 		    ReadDataW, ReadDataSigned, ReadDataUnsigned, ReadDataW4;
    logic [31:0] 		    PCPlus4W;
    logic [31:0] 		    ResultW;
    logic [1:0]          readDataSwitch;
    logic [2:0]          funct3W;
+   logic                jalr;
+   logic [31:0]         PCAddSrc;
+   logic                readDataSign;
+   logic                JumpE;
+      always_comb
+     jalr = ((ALUSrcAE) & JumpE);
 
    // Fetch stage pipeline register and logic
    mux2    #(32) pcmux(PCPlus4F, PCTargetE, PCSrcE, PCNextF);
@@ -442,16 +452,17 @@ module datapath(input logic clk, reset,
    extend         ext(InstrD[31:7], ImmSrcD, ImmExtD);
    
    // Execute stage pipeline register and logic
-   floprc #(178) regE(clk, reset, FlushE, 
-                      {RD1D, RD2D, PCD, Rs1D, Rs2D, RdD, ImmExtD, PCPlus4D, funct3D}, 
-                      {RD1E, RD2E, PCE, Rs1E, Rs2E, RdE, ImmExtE, PCPlus4E, funct3E});
+   floprc #(179) regE(clk, reset, FlushE, 
+                      {RD1D, RD2D, PCD, Rs1D, Rs2D, RdD, ImmExtD, PCPlus4D, funct3D, JumpD}, 
+                      {RD1E, RD2E, PCE, Rs1E, Rs2E, RdE, ImmExtE, PCPlus4E, funct3E, JumpE});
    
    mux3   #(32)  faemux(RD1E, ResultW, ALUResultM, ForwardAE, WriteDataAE);
    mux3   #(32)  fbemux(RD2E, ResultW, ALUResultM, ForwardBE, WriteDataBE);
    mux2   #(32)  srcamux(32'b0, WriteDataAE, ALUSrcAE, SrcAE);
    mux3   #(32)  srcbmux(WriteDataBE, ImmExtE, PCTargetE, ALUSrcBE, SrcBE);
    alu           alu(SrcAE, SrcBE, ALUControlE, ALUResultE, BranchLogicE);
-   adder         branchadd(ImmExtE, PCE, PCTargetE);
+   mux2 #(32) pcAdderSource (PCE, SrcAE, jalr, PCAddSrc); //JALR mux, uses ALUSrc to distinguish JAL vs JALR
+   adder         branchadd(ImmExtE, PCAddSrc, PCTargetE);
 
    // Memory stage pipeline register
    flopr  #(104) regM(clk, reset, 
@@ -464,13 +475,21 @@ module datapath(input logic clk, reset,
                       {ALUResultW, ReadDataW, RdW, PCPlus4W, funct3W});
 
     always_comb
-      case(funct3W)
-        3'b010: assign readDataSwitch = 2'b00; //lw
-        3'b000: assign readDataSwitch = 2'b10; //lb
-        3'b001: assign readDataSwitch = 2'b01; //lh
+      case(funct3W[1:0])
+        2'b10: assign readDataSwitch = 2'b00; //lw
+        2'b00: assign readDataSwitch = 2'b10; //lb
+        2'b01: assign readDataSwitch = 2'b01; //lh
         default: assign readDataSwitch = 2'bxx;
     endcase // case (Instr[14:12])
-  mux3 #(32) readdatamux (ReadDataW, {{16{ReadDataW[15]}}, ReadDataW[15:0]}, {{24{ReadDataW[7]}}, ReadDataW[7:0]}, readDataSwitch, ReadDataW2);
+    always_comb
+      case(funct3W[2])
+        1'b0: assign readDataSign = 1'b0; //unsigned
+        1'b1: assign readDataSign = 1'b1; //signed
+        default: assign readDataSign = 1'bx;
+    endcase
+  mux3 #(32) readdatamux (ReadDataW, {{16{ReadDataW[15]}}, ReadDataW[15:0]}, {{24{ReadDataW[7]}}, ReadDataW[7:0]}, readDataSwitch, ReadDataSigned);
+  mux3 #(32) readdatamux2 (ReadDataW, {{16'b0}, ReadDataW[15:0]}, {{24'b0}, ReadDataW[7:0]}, readDataSwitch, ReadDataUnsigned);
+  mux2 #(32) readdatamuxsign (ReadDataSigned, ReadDataUnsigned, readDataSign, ReadDataW2);
 
    mux3   #(32)  resultmux(ALUResultW, ReadDataW2, PCPlus4W, ResultSrcW, ResultW);	
 endmodule
