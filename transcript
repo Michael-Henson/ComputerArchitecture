@@ -12,5 +12,5 @@
 # // of the Customer's facilities without the express written permission of SISW,
 # // and may not be used in any way not expressly authorized by SISW.
 # //
-# riscv_single.do
-# invalid command name "riscv_single.do"
+# riscv_pipelined.sv
+# invalid command name "riscv_pipelined.sv"
